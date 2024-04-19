@@ -28,6 +28,14 @@ func (s mockSender) Send(from string, to []string, msg io.WriterTo) error {
 	return s(from, to, msg)
 }
 
+func (s mockSender) SkipErrRcpt() bool {
+	return false
+}
+
+func (s mockSender) SkippableSend(from string, to []string, msg io.WriterTo) (RcptErrors, error) {
+	return nil, s(from, to, msg)
+}
+
 type mockSendCloser struct {
 	mockSender
 	close func() error
