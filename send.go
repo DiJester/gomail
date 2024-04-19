@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"net/mail"
+	"strings"
 )
 
 // Sender is the interface that wraps the Send method.
@@ -12,6 +13,8 @@ import (
 // Send sends an email to the given addresses.
 type Sender interface {
 	Send(from string, to []string, msg io.WriterTo) error
+	SkippableSend(from string, to []string, msg io.WriterTo) (RcptErrors, error)
+	SkipErrRcpt() bool
 }
 
 // SendCloser is the interface that groups the Send and Close methods.
@@ -32,33 +35,63 @@ func (f SendFunc) Send(from string, to []string, msg io.WriterTo) error {
 	return f(from, to, msg)
 }
 
+// SkippableSend calls f(from, to, msg).
+func (f SendFunc) SkippableSend(from string, to []string, msg io.WriterTo) (RcptErrors, error) {
+	return nil, f(from, to, msg)
+}
+
+// SkipErrRcpt return SkipErrRcpt flag
+func (f SendFunc) SkipErrRcpt() bool {
+	return false
+}
+
+const skipRcptErr = "gomail: email sent with skipped recipients"
+
+func IsSkipRcptErr(err error) bool {
+	return strings.HasPrefix(err.Error(), skipRcptErr)
+}
+
 // Send sends emails using the given Sender.
 func Send(s Sender, msg ...*Message) error {
+	rcptErrs := []RcptError{}
 	for i, m := range msg {
-		if err := send(s, m); err != nil {
+		rcptErr, err := send(s, m)
+		if err != nil {
 			return fmt.Errorf("gomail: could not send email %d: %v", i+1, err)
 		}
+
+		if len(rcptErr) > 0 {
+			rcptErrs = append(rcptErrs, rcptErr...)
+		}
+	}
+
+	if len(rcptErrs) > 0 {
+		return fmt.Errorf("%s: %v, error: %s", skipRcptErr, (RcptErrors)(rcptErrs).Rcpts(), (RcptErrors)(rcptErrs).Error())
 	}
 
 	return nil
 }
 
-func send(s Sender, m *Message) error {
+func send(s Sender, m *Message) (RcptErrors, error) {
 	from, err := m.getFrom()
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	to, err := m.getRecipients()
 	if err != nil {
-		return err
+		return nil, err
+	}
+
+	if s.SkipErrRcpt() {
+		return s.SkippableSend(from, to, m)
 	}
 
 	if err := s.Send(from, to, m); err != nil {
-		return err
+		return nil, err
 	}
 
-	return nil
+	return nil, nil
 }
 
 func (m *Message) getFrom() (string, error) {
