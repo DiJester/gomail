@@ -33,6 +33,8 @@ type Dialer struct {
 	// LocalName is the hostname sent to the SMTP server with the HELO command.
 	// By default, "localhost" is sent.
 	LocalName string
+	// if SkipErrRcpt set to true, will continue email sending sequence if Rcpt() returns error
+	SkipErrRcpt bool
 }
 
 // NewDialer returns a new SMTP Dialer. The given parameters are used to connect
@@ -174,6 +176,82 @@ func (c *smtpSender) Send(from string, to []string, msg io.WriterTo) error {
 	}
 
 	return w.Close()
+}
+
+// SetSkipErrRcpt set SkipErrRcpt flag
+func (d *Dialer) SetSkipErrRcpt(skip bool) {
+	d.SkipErrRcpt = skip
+}
+
+func (c *smtpSender) SkipErrRcpt() bool {
+	return c.d.SkipErrRcpt
+}
+
+type RcptError struct {
+	Recpt string
+	Error error
+}
+
+type RcptErrors []RcptError
+
+func (rcptErrs RcptErrors) Error() string {
+	errStrs := []string{}
+	for _, rcptErr := range rcptErrs {
+		errStrs = append(errStrs, rcptErr.Error.Error())
+	}
+
+	return strings.Join(errStrs, ", ")
+}
+
+func (rcptErrs RcptErrors) Rcpts() []string {
+	rcpts := []string{}
+	for _, rcptErr := range rcptErrs {
+		rcpts = append(rcpts, rcptErr.Recpt)
+	}
+
+	return rcpts
+}
+
+func (c *smtpSender) SkippableSend(from string, to []string, msg io.WriterTo) (RcptErrors, error) {
+	if err := c.Mail(from); err != nil {
+		if err == io.EOF {
+			// This is probably due to a timeout, so reconnect and try again.
+			sc, derr := c.d.Dial()
+			if derr == nil {
+				if s, ok := sc.(*smtpSender); ok {
+					*c = *s
+					return c.SkippableSend(from, to, msg)
+				}
+			}
+		}
+		return nil, err
+	}
+
+	rcptErrs := []RcptError{}
+	for _, addr := range to {
+		if err := c.Rcpt(addr); err != nil {
+			rcptErrs = append(rcptErrs, RcptError{
+				Recpt: addr,
+				Error: err,
+			})
+		}
+	}
+
+	if len(rcptErrs) == len(to) {
+		return rcptErrs, fmt.Errorf("all %d rcpt(s) failed, abort sending. error: %s", len(rcptErrs), (RcptErrors)(rcptErrs).Error())
+	}
+
+	w, err := c.Data()
+	if err != nil {
+		return rcptErrs, err
+	}
+
+	if _, err = msg.WriteTo(w); err != nil {
+		w.Close()
+		return rcptErrs, err
+	}
+
+	return rcptErrs, w.Close()
 }
 
 func (c *smtpSender) Close() error {
