@@ -7,7 +7,7 @@ import (
 	"log"
 	"time"
 
-	"github.tesla.cn/itapp/gomail"
+	"github.com/dijester/gomail"
 )
 
 func Example() {
