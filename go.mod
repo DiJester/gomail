@@ -1,3 +1,3 @@
-module github.tesla.cn/dijester/gomail
+module github.com/dijester/gomail
 
 go 1.19
