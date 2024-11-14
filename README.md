@@ -24,14 +24,14 @@ After initing the dialer `d`, call `d.SetSkipErrRcpt(true)` to enable the featur
         d.SetSkipErrRcpt(true)
         // Send emails using d.
         m := yourBuildMessageFunc()
-	    err := d.DialAndSend(m)
-	    if err != nil {
-		    if !gomail.IsSkipRcptErr(err) {
-			    panic(err)
-		    }
-            // if error is SkipRcptErr, you can ignore the error or do some log
-            log.Info("email sent with skipped recipients", zap.String("details", err.Error()))
-	    }
+        err := d.DialAndSend(m)
+        if err != nil {
+            if !gomail.IsSkipRcptErr(err) {
+                 panic(err)
+            }
+        // if error is SkipRcptErr, you can ignore the error or do some log
+        log.Info("email sent with skipped recipients", zap.String("details", err.Error()))
+        }
     }
 
 ```
