@@ -13,16 +13,25 @@ After initing the dialer `d`, call `d.SetSkipErrRcpt(true)` to enable the featur
 
     import (
     	"crypto/tls"
-
-    	"gopkg.in/gomail.v2"
+        "go.uber.org/zap"
+        "github.com/pingcap/log"
+    	"github.com/dijester/gomail"
     )
 
     func main() {
     	d := gomail.NewDialer("smtp.example.com", 587, "user", "123456")
     	d.TLSConfig = &tls.Config{InsecureSkipVerify: true}
         d.SetSkipErrRcpt(true)
-
         // Send emails using d.
+        m := yourBuildMessageFunc()
+        err := d.DialAndSend(m)
+        if err != nil {
+            if !gomail.IsSkipRcptErr(err) {
+                 panic(err)
+            }
+        // if error is SkipRcptErr, you can ignore the error or do some log
+        log.Info("email sent with skipped recipients", zap.String("details", err.Error()))
+        }
     }
 
 ```
