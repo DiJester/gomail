@@ -2,8 +2,11 @@
 [![Build Status](https://travis-ci.org/go-gomail/gomail.svg?branch=v2)](https://travis-ci.org/go-gomail/gomail) [![Code Coverage](http://gocover.io/_badge/gopkg.in/gomail.v2)](http://gocover.io/gopkg.in/gomail.v2) [![Documentation](https://godoc.org/gopkg.in/gomail.v2?status.svg)](https://godoc.org/gopkg.in/gomail.v2)
 
 ## Why This Version
-When an email's recipient list contains invalid email addresses (wrong format, inactive account, etc), the email could not be delivered successfully. So the other recipients won't receive the email. To address this issue. This version introduces a flag `SkipErrRcpt`. When the flag is set, the send function will ignore the invalid email addresses in recipient list.
-#### How to enable the flag
+### Problem
+When an email's recipient list contains invalid email addresses (wrong format, inactive account, etc), the email could not be delivered successfully. So the other recipients won't receive the email.
+### Solution
+This version introduces a flag `SkipErrRcpt`. When the flag is set, the send function will ignore the invalid email addresses in recipient list.
+### How to use
 After initing the dialer `d`, call `d.SetSkipErrRcpt(true)` to enable the feature.
 ```go
     package main
