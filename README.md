@@ -29,8 +29,8 @@ After initing the dialer `d`, call `d.SetSkipErrRcpt(true)` to enable the featur
             if !gomail.IsSkipRcptErr(err) {
                  panic(err)
             }
-        // if error is SkipRcptErr, you can ignore the error or do some log
-        log.Info("email sent with skipped recipients", zap.String("details", err.Error()))
+            // if error is SkipRcptErr, you can ignore the error or do some log
+            log.Info("email sent with skipped recipients", zap.String("details", err.Error()))
         }
     }
 
