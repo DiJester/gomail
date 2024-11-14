@@ -1,6 +1,29 @@
 # Gomail
 [![Build Status](https://travis-ci.org/go-gomail/gomail.svg?branch=v2)](https://travis-ci.org/go-gomail/gomail) [![Code Coverage](http://gocover.io/_badge/gopkg.in/gomail.v2)](http://gocover.io/gopkg.in/gomail.v2) [![Documentation](https://godoc.org/gopkg.in/gomail.v2?status.svg)](https://godoc.org/gopkg.in/gomail.v2)
 
+## Why This Version
+When an email's recipient list contains invalid email addresses (wrong format, inactive account, etc), the email could not be delivered successfully. So the other recipients won't receive the email. To address this issue. This version introduces a flag `SkipErrRcpt`. When the flag is set, the send function will ignore the invalid email addresses in recipient list.
+#### How to enable the flag
+After initing the dialer `d`, call `d.SetSkipErrRcpt(true)` to enable the feature.
+```go
+    package main
+
+    import (
+    	"crypto/tls"
+
+    	"gopkg.in/gomail.v2"
+    )
+
+    func main() {
+    	d := gomail.NewDialer("smtp.example.com", 587, "user", "123456")
+    	d.TLSConfig = &tls.Config{InsecureSkipVerify: true}
+        d.SetSkipErrRcpt(true)
+
+        // Send emails using d.
+    }
+
+```
+
 ## Introduction
 
 Gomail is a simple and efficient package to send emails. It is well tested and
@@ -14,7 +37,6 @@ It is versioned using [gopkg.in](https://gopkg.in) so I promise
 there will never be backward incompatible changes within each version.
 
 It requires Go 1.2 or newer. With Go 1.5, no external dependencies are used.
-
 
 ## Features
 
