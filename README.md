@@ -1,8 +1,8 @@
 # Gomail
 [![Build Status](https://travis-ci.org/go-gomail/gomail.svg?branch=v2)](https://travis-ci.org/go-gomail/gomail) [![Code Coverage](http://gocover.io/_badge/gopkg.in/gomail.v2)](http://gocover.io/gopkg.in/gomail.v2) [![Documentation](https://godoc.org/gopkg.in/gomail.v2?status.svg)](https://godoc.org/gopkg.in/gomail.v2)
 
-## Why This Subversion
-When an email recipient list contains invalid email addresses (wrong format, inactive account etc). the email could not be delivered successfully. So the others recipients won't receive the email. To address this issue. This subversion introduces a flag `SkipErrRcpt`. When the flag is set, the send function will ignore the invalid email addresses in recipient list.
+## Why This Version
+When an email's recipient list contains invalid email addresses (wrong format, inactive account, etc), the email could not be delivered successfully. So the other recipients won't receive the email. To address this issue. This version introduces a flag `SkipErrRcpt`. When the flag is set, the send function will ignore the invalid email addresses in recipient list.
 #### How to enable the flag
 After initing the dialer `d`, call `d.SetSkipErrRcpt(true)` to enable the feature.
 ```go
